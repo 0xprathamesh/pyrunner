@@ -1,0 +1,80 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: pyrunner
+      POSTGRES_PASSWORD: pyrunner
+      POSTGRES_DB: pyrunner
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pyrunner -d pyrunner"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    build: .
+    command: ["node", "src/index.js"]
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgres://pyrunner:pyrunner@postgres:5432/pyrunner
+      REDIS_URL: redis://redis:6379
+      PYTHON_IMAGE: python:3.12-alpine
+      MAX_EXECUTION_MS: "5000"
+      MAX_MEMORY_MB: "128"
+      MAX_OUTPUT_BYTES: "65536"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  worker:
+    build: .
+    command: ["node", "src/worker.js"]
+    environment:
+      DATABASE_URL: postgres://pyrunner:pyrunner@postgres:5432/pyrunner
+      REDIS_URL: redis://redis:6379
+      PYTHON_IMAGE: python:3.12-alpine
+      MAX_EXECUTION_MS: "5000"
+      MAX_MEMORY_MB: "128"
+      MAX_OUTPUT_BYTES: "65536"
+      DOCKER_HOST: unix:///var/run/docker.sock
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_started
+    restart: unless-stopped
+
+  
+  python-runtime:
+    image: python:3.12-alpine
+    profiles: ["setup"]
+    command: ["true"]
+
+volumes:
+  postgres_data:
+  redis_data:

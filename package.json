@@ -1,0 +1,25 @@
+{
+  "name": "py-runner",
+  "version": "1.0.0",
+  "description": "Self-hosted Python code execution API (Docker + Redis + Postgres)",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "worker": "node src/worker.js",
+    "dev": "node --watch src/index.js",
+    "dev:worker": "node --watch src/worker.js",
+    "test:dsa": "node tests/run-dsa.js",
+    "test:dsa:fast": "node tests/run-dsa.js --concurrency 4"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "bullmq": "^5.34.5",
+    "dockerode": "^4.0.4",
+    "express": "^4.21.2",
+    "ioredis": "^5.4.2",
+    "pg": "^8.13.1",
+    "uuid": "^11.0.5"
+  }
+}
