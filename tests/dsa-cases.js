@@ -1,5 +1,4 @@
 /**
- * DSA test cases for py-runner.
  * Each case is a complete Python program: reads stdin, prints stdout.
  */
 module.exports = [
