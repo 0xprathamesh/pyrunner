@@ -1,13 +1,4 @@
 #!/usr/bin/env node
-/**
- * Run DSA cases against the py-runner API and print metrics.
- *
- * Usage:
- *   node tests/run-dsa.js
- *   API_URL=http://localhost:3000 node tests/run-dsa.js
- *   node tests/run-dsa.js --topic dp
- *   node tests/run-dsa.js --id arr-01
- */
 const cases = require('./dsa-cases');
 
 const API_URL = (process.env.API_URL || 'http://localhost:3000').replace(/\/$/, '');
